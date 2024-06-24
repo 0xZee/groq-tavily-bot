@@ -2,8 +2,8 @@ import streamlit as st
 from llama_index.llms.groq import Groq
 from llama_index.core.agent import ReActAgent
 from llama_index.core import Settings
-#from tavily import TavilyClient
-#from llama_index.core.schema import Document
+# from tavily import TavilyClient
+# from llama_index.core.schema import Document
 from llama_index.tools.tavily_research import TavilyToolSpec
 
 
@@ -26,6 +26,7 @@ with st.sidebar:
     }
     st.json(app_config, expanded=True)
     st.subheader("🔐 GROQ INFERENCE API", divider="grey")
+    # control GROQ API
     if ("GROQ_API" in st.secrets and st.secrets['GROQ_API'].startswith('gsk_')):
         st.success(':white_check_mark: GROQ API ')
         api_key = st.secrets['GROQ_API']
@@ -35,6 +36,18 @@ with st.sidebar:
             st.warning("Enter a Valid GROQ API key")
         else:
             st.success('GROQ API Key Provided')
+    # control TACILY API
+    st.subheader("🔐 TAVILY SEARCH API", divider="grey")
+    if ("TAVILY_API" in st.secrets):
+        st.success(':white_check_mark: TAVILY API ')
+        api_tavily_key = st.secrets['TAVILY_API']
+    else:
+        api_tavily_key = st.text_input(
+            'Enter your Tavily API Key', type='password')
+        if not (api_tavily_key.startswith('tvly-')):
+            st.warning("Enter a Valid TAVILY API key")
+        else:
+            st.success('TAVILY API Key Provided')
 
 # Main Page
 st.subheader("📰 :red[Search] ChatBot Agent 📋", divider="red")
@@ -48,7 +61,7 @@ if api_key:
                 # "llama3-8b-8192" , "mixtral-8x7b-32768" , "gemma-7b-it"
                 Settings.llm = Groq(model="llama3-8b-8192",
                                     temperature=0.1, api_key=api_key)
-                tavily_tool = TavilyToolSpec(api_key=st.secrets["TAVILY_API"])
+                tavily_tool = TavilyToolSpec(api_key=api_tavily_key)
                 tavily_tool_list = tavily_tool.to_tool_list()
                 chat_engine = ReActAgent.from_tools(tools=tavily_tool_list)
                 st.session_state["chat_engine"] = chat_engine
